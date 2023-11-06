@@ -2,16 +2,13 @@ from retinaface import RetinaFace
 import cv2
 
 
-#load RetinaFace detector
-#detector = RetinaFace() #pre_trained face detector
-
 #load and preprocess image:
 #now use just one, should be modified later:
 image_path = '/home/teakoo/Landmark-Agnostic-FIQA/img_test/518.jpg'
 image = cv2.imread(image_path)
 
 #face detection
-faces = RetinaFace.detect_faces(image) #list of rectangles where each represents a detected face.
+faces = RetinaFace.detect_faces(image) #list of faces as json object where each represents a detected face.
 
 #head length and width measurement
 for face, value in faces.items():
