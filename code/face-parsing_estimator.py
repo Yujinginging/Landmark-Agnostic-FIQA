@@ -104,15 +104,18 @@ def get_eye_chin_distance(image_path, cp):
         # Adjust the bounding box to be lower, closer to the chin area
         bounding_box = (bounding_box[0] + int(bounding_box[3] /4), bounding_box[1] + int(bounding_box[3] ),
                         int(bounding_box[2] * 2.2), int(4 * bounding_box[3] / 3 - 6) )
-        print(bounding_box[1])
         # Draw bounding box on the original image
         img = cv2.imread(image_path)
         cv2.rectangle(img, (bounding_box[0], bounding_box[3]),
                       (bounding_box[0] + bounding_box[2], bounding_box[1] + bounding_box[3]),
                       (0, 255, 0), 2)  # Green bounding box
-
+        #distance from eye to chin
+        eye_chin_dis = bounding_box[3]
+        #get the head length estimation by *2
+        head_length = 2 * eye_chin_dis
+        print("The estimation of the head length is: ", head_length, " pixels")
         # Save the image with the bounding box
-        output_image_path = '/home/jing/FIQA_repo/face-parsing.PyTorch/res/img/518_output_image.jpg'  # Provide a suitable path
+        output_image_path = '/home/jing/FIQA_repo/face-parsing.PyTorch/res/img/568_output_image.jpg'  # Provide a suitable path
         cv2.imwrite(output_image_path, img)
 
         return output_image_path
@@ -123,15 +126,16 @@ def get_eye_chin_distance(image_path, cp):
 
     
 if __name__ == "__main__":
-    #image_path = '/home/jing/FIQA_repo/face-parsing.PyTorch/res/img/568.jpg'  # Replace with the actual path to your test image
+    image_path = '/home/jing/FIQA_repo/face_parsing.PyTorch/res/img/568.jpg'  # Replace with the actual path to your test image
     
     cp = '/home/jing/FIQA_repo/face_parsing.PyTorch/res/cp/79999_iter.pth'   # Replace with the actual path to your pre-trained model checkpoint
 
     #test case 2
-    image_path = '/home/jing/FIQA_repo/img_test/518.jpg'
+    #image_path = '/home/jing/FIQA_repo/img_test/518.jpg'
     
     
     output_image_path = get_eye_chin_distance(image_path, cp)
+    
 
     if output_image_path is not None:
         print(f"Output image saved at: {output_image_path}")
