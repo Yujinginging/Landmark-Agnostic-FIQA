@@ -37,9 +37,15 @@ distance = math.sqrt((center_eye_coordinate[0] - chin_coordinate[0]) ** 2 + (cen
 # calculate the head length from the crown to the chin 
 head_length_from_crown = 2 * distance
 
-# Draw the line between the center of the eyes and the chain
+# Draw the line of head length from crown to chin between the center of the eyes and the chain
 head_crown_y = round(center_y) -  round(distance) # claculate the crown y coordinates
 cv2.line(image, (center_eye_coordinate[0], head_crown_y), (center_eye_coordinate[0], chin_coordinate[1]), (0, 255, 0), 2)
+
+# Draw the line width of the head
+x1 = round(face.bbox[0] )
+y = round(face.bbox[3] // 2)
+x2 = round(face.bbox[2] )
+cv2.line(image, (x1,y), (x2, y), (0, 255, 0), 2)
 
 # Print the head width and length in pixels
 print(f"Head Length from crown: {round(head_length_from_crown)} pixels")

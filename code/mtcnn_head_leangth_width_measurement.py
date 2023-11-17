@@ -8,7 +8,7 @@ detector = MTCNN() #pre_trained face detector
 
 #load and preprocess image:
 #now use just one, should be modified later:
-image_path = '/home/teakoo/Landmark-Agnostic-FIQA/img_test/518.jpg'
+image_path = '/home/teakoo/Landmark-Agnostic-FIQA/img_test/image1_2.jpg'
 image = cv2.imread(image_path)
 
 #face detection
@@ -42,12 +42,16 @@ for face in faces:
     #cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
     # Draw the line between the center of the eyes and the chain
     head_crown_y = (center_y) -  round(distance) # claculate the crown y coordinates
-    cv2.line(image, (chin_x, head_crown_y), (chin_x, chin_y), (0, 255, 0), 2)
+    cv2.line(image, (chin_x, head_crown_y), (chin_x, chin_y), (0, 0, 255), 2)
+
+    # Draw the line width of the head
+    y1 = round(h + y  // 2)
+    cv2.line(image, (x,y1), (x + w, y1), (0, 0, 255), 2)
     
     # Print the head width and length in pixels
     print(f"Head Width: {head_width} pixels")
-    print(f"Head Length: {head_length} pixels")
-    print(f"Head Length from crown: {head_length_from_crown} pixels")
+    #print(f"Head Length: {head_length} pixels")
+    print(f"Head Length from crown: {round(head_length_from_crown)} pixels")
 
     
     #save the image with rectangles: for test and view results later

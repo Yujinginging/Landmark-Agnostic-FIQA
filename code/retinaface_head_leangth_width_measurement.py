@@ -29,7 +29,7 @@ for face, value in faces.items():
     
             # Print the head width and length in pixels
             print(f"Head Width: {head_width} pixels")
-            print(f"Head Length: {head_length} pixels")
+            #print(f"Head Length: {head_length} pixels")
     
             #save the image with rectangles: for test and view results later
             #cv2.imwrite('/home/teakoo/Landmark-Agnostic-FIQA/img_test/test_output/518_withRect.jpg',image)
@@ -50,7 +50,13 @@ for face, value in faces.items():
 
             # Draw the line between the center of the eyes and the chain
             head_crown_y = round(center_y) -  round(distance) # claculate the crown y coordinates
-            cv2.line(image, (chin_x, head_crown_y), (chin_x, chin_y), (0, 255, 0), 2)
+            cv2.line(image, (center_eye_coordinate[0], head_crown_y), (center_eye_coordinate[0], chin_coordinate[1]), (0, 255, 0), 2)
+
+            # Draw the line width of the head
+            x1 = round(x )
+            y = round(h // 2)
+            x2 = round(w)
+            cv2.line(image, (x1,y), (x2, y), (0, 255, 0), 2)
 
             # Print the head width and length in pixels
             print(f"Head Length from crown: {round(head_length_from_crown)} pixels")
