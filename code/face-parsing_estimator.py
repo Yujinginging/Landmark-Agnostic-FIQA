@@ -1,17 +1,11 @@
 import sys
 sys.path.append('/home/jing/FIQA_repo/face_parsing.PyTorch') 
-import logger,model
-from logger import setup_logger
 from model import BiSeNet
-
-import torch
-
-import os
-import os.path as osp
-import numpy as np
 from PIL import Image
-import torchvision.transforms as transforms
+import torch
 import cv2
+import numpy as np
+import torchvision.transforms as transforms
 
 def vis_parsing_maps(im, parsing_anno, stride, save_im=False, save_path='vis_results/parsing_map_on_im.jpg'):
     # Colors for all 20 parts
@@ -38,22 +32,16 @@ def vis_parsing_maps(im, parsing_anno, stride, save_im=False, save_path='vis_res
         vis_parsing_anno_color[index[0], index[1], :] = part_colors[pi]
 
     vis_parsing_anno_color = vis_parsing_anno_color.astype(np.uint8)
-    # print(vis_parsing_anno_color.shape, vis_im.shape)
     vis_im = cv2.addWeighted(cv2.cvtColor(vis_im, cv2.COLOR_RGB2BGR), 0.4, vis_parsing_anno_color, 0.6, 0)
 
     # Save result or not
     if save_im:
-        cv2.imwrite(save_path[:-4] +'.png', vis_parsing_anno)
+        cv2.imwrite(save_path[:-4] +'.jpg', vis_parsing_anno)
         cv2.imwrite(save_path, vis_im, [int(cv2.IMWRITE_JPEG_QUALITY), 100])
 
     # return vis_im
 
-#def evaluate(respth='./res/test_res', dspth='./data', cp='79999_iter.pth'):
 def evaluate(image_path, cp='cp/79999_iter.pth'):
-
-    # if not os.path.exists(respth):
-    #     os.makedirs(respth)
-
     n_classes = 19
     net = BiSeNet(n_classes=n_classes)
     net.cuda()
@@ -73,16 +61,10 @@ def evaluate(image_path, cp='cp/79999_iter.pth'):
         img = img.cuda()
         out = net(img)[0]
         parsing = out.squeeze(0).cpu().numpy().argmax(0)
-        # print(parsing)
-        # print(np.unique(parsing))
 
-        #vis_parsing_maps(image, parsing, stride=1, save_im=True,save_path='/home/jing/face-parsing.PyTorch/res/test_res')
         return parsing
 
-
-
-
-def get_eye_chin_distance(image_path, cp):
+def get_head_measurements(image_path, cp):
     # Load the parsing result using the provided code
     parsing_result = evaluate(image_path=image_path, cp=cp)
 
@@ -100,20 +82,34 @@ def get_eye_chin_distance(image_path, cp):
         largest_contour = max(contours, key=cv2.contourArea)
         bounding_box = cv2.boundingRect(largest_contour)
         
-        
         # Adjust the bounding box to be lower, closer to the chin area
-        bounding_box = (bounding_box[0] + int(bounding_box[3] /4), bounding_box[1] + int(bounding_box[3] ),
-                        int(bounding_box[2] * 2.2), int(4 * bounding_box[3] / 3 - 6) )
-        print(bounding_box[1])
+        bounding_box = (bounding_box[0] + int(bounding_box[3] / 4), bounding_box[1] + int(bounding_box[3]),
+                        int(bounding_box[2] * 2.2), int(4 * bounding_box[3] / 3 - 6))
+
         # Draw bounding box on the original image
         img = cv2.imread(image_path)
-        cv2.rectangle(img, (bounding_box[0], bounding_box[3]),
-                      (bounding_box[0] + bounding_box[2], bounding_box[1] + bounding_box[3]),
-                      (0, 255, 0), 2)  # Green bounding box
+        # cv2.rectangle(img, (bounding_box[0], bounding_box[1]),
+        #               (bounding_box[0] + bounding_box[2], bounding_box[1] + bounding_box[3]),
+        #               (0, 255, 0), 2)  # Green bounding box
 
-        # Save the image with the bounding box
-        output_image_path = '/home/jing/FIQA_repo/face-parsing.PyTorch/res/img/518_output_image.jpg'  # Provide a suitable path
+        # Draw lines for head length and width
+        head_length = 2 * bounding_box[3]
+        head_width = bounding_box[2]
+
+        # Line for head length
+        cv2.line(img, (bounding_box[0] + int(bounding_box[2]/2) , bounding_box[1] - head_length),
+                 (bounding_box[0] + int(bounding_box[2]/2), bounding_box[1] + bounding_box[3]), (255, 0, 0), 2)
+
+        # Line for head width
+        cv2.line(img, (bounding_box[0], bounding_box[1] + int(bounding_box[3])//4),
+                 (bounding_box[0] + int(head_width), bounding_box[1] + int(bounding_box[3])//4), (0, 0, 255), 2)
+
+        # Save the image with the bounding box and lines
+        output_image_path = image_path.replace('.jpg', '_faceparsing.jpg')
         cv2.imwrite(output_image_path, img)
+
+        print("The estimation of the head length is:", head_length, "pixels")
+        print("The estimation of the head width is:", head_width, "pixels")
 
         return output_image_path
 
@@ -121,19 +117,11 @@ def get_eye_chin_distance(image_path, cp):
         print("No face contour found.")
         return None
 
-    
 if __name__ == "__main__":
-    #image_path = '/home/jing/FIQA_repo/face-parsing.PyTorch/res/img/568.jpg'  # Replace with the actual path to your test image
-    
-    cp = '/home/jing/FIQA_repo/face_parsing.PyTorch/res/cp/79999_iter.pth'   # Replace with the actual path to your pre-trained model checkpoint
+    image_path = '/home/jing/FIQA_repo/face_parsing.PyTorch/res/img/568_2.jpg'  
+    cp = '/home/jing/FIQA_repo/face_parsing.PyTorch/res/cp/79999_iter.pth'   
 
-    #test case 2
-    image_path = '/home/jing/FIQA_repo/img_test/518.jpg'
-    
-    
-    output_image_path = get_eye_chin_distance(image_path, cp)
+    output_image_path = get_head_measurements(image_path, cp)
 
     if output_image_path is not None:
         print(f"Output image saved at: {output_image_path}")
-
-

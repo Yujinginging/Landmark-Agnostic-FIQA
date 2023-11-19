@@ -1,5 +1,7 @@
 {
     "python.analysis.extraPaths": [
         "./face_parsing.PyTorch"
-    ]
+    ],
+    "git.confirmNoVerifyCommit": true,
+    "git.enableSmartCommit": true
 }
