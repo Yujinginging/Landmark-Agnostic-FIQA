@@ -51,10 +51,10 @@ cv2.line(image, (x1,y), (x2, y), (0, 255, 0), 2)
 print(f"Head Length from crown: {round(head_length_from_crown)} pixels")
 
 #save the image with rectangles: for test and view results later
-cv2.imwrite('/home/teakoo/Landmark-Agnostic-FIQA/img_test/test_output/518_withRect.jpg',image)
+cv2.imwrite('/home/teakoo/Landmark-Agnostic-FIQA/img_test/test_output/7_withRect.jpg',image)
 
-print(f"Head Width: {head_width} pixels")
-print(f"Head Length: {head_length} pixels")
+print(f"Head Width: {round(head_width)} pixels")
+#print(f"Head Length: {round(head_length)} pixels")
 
 # Draw the rectangle on the image (for visualization only)
 #cv2.rectangle(image, (int(face.bbox[0]), int(face.bbox[1])), (int(face.bbox[2]),int(face.bbox[3])), (0, 255, 0), 2)
