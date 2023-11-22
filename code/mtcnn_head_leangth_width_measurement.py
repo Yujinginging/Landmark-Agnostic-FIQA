@@ -8,7 +8,7 @@ detector = MTCNN() #pre_trained face detector
 
 #load and preprocess image:
 #now use just one, should be modified later:
-image_path = '/home/teakoo/Landmark-Agnostic-FIQA/img_test/image1_2.jpg'
+image_path = '/home/teakoo/Landmark-Agnostic-FIQA/img_test/image518_3.jpg'
 image = cv2.imread(image_path)
 
 #face detection
@@ -45,7 +45,7 @@ for face in faces:
     cv2.line(image, (chin_x, head_crown_y), (chin_x, chin_y), (0, 0, 255), 2)
 
     # Draw the line width of the head
-    y1 = round(h + y  // 2)
+    y1 = round((h + y)  // 2)
     cv2.line(image, (x,y1), (x + w, y1), (0, 0, 255), 2)
     
     # Print the head width and length in pixels
@@ -55,7 +55,7 @@ for face in faces:
 
     
     #save the image with rectangles: for test and view results later
-    cv2.imwrite('/home/teakoo/Landmark-Agnostic-FIQA/img_test/test_output/518_withRect.jpg',image)
+    cv2.imwrite('/home/teakoo/Landmark-Agnostic-FIQA/img_test/test_output/518_3_withRect.jpg',image)
     
 
 # Display or save the image with rectangles (optional)
