@@ -94,8 +94,9 @@ def get_dlib_output(image_path):
     
     #distance_center eye to chin
         distance_centereye_chin =  math.sqrt((center_point[0] - L16[0]) ** 2 + (center_point[1] - L16[1]) ** 2)
-    # the image height
+    # the image height and width
         B = image.shape[0] # the image height
+        A = image.shape[1] # the image width
 
     # comput the Head size
         T = np.linalg.norm(np.array(center_point) - np.array(L16)) # the distance_center eye to chin
@@ -164,6 +165,23 @@ def get_dlib_output(image_path):
         print(f"DL_mouth: {DL_mouth}")
         print(f"W_mouth: {W_mouth}")
         print(f" mouth_closed_QC: {mouth_closed_QC}")
+
+
+    # compute the leftward crop QC of the face in image
+        leftward_crop_QC = round(100 * (sigmoid(right_eye_center_point[0]/IED, 0.9, 0.1)))
+        print(f"leftward_crop_QC = {leftward_crop_QC}")
+
+    # compute the rightward crop QC of the face in image
+        rightward_crop_QC = round(100 * (sigmoid((A - left_eye_center_point[0])/IED, 0.9, 0.1)))
+        print(f"rightward_crop_QC = {rightward_crop_QC}") 
+
+    # compute the downward crop QC of the face in image
+        downward_crop_QC = round(100 * (sigmoid(center_point[1]/IED, 1.4, 0.1)))
+        print(f"dwonward_crop_QC = {downward_crop_QC}")  
+
+    # compute the upward crop QC of the face in image
+        upward_crop_QC = round(100 * (sigmoid((B - center_point[1])/IED, 1.8, 0.1)))
+        print(f"upward_crop_QC = {upward_crop_QC}")     
 
     #draw the lines on the picture
         cv2.line(image,center_point,L16,(0,255,0),2)
