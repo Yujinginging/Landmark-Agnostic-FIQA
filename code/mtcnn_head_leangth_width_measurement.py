@@ -8,7 +8,7 @@ detector = MTCNN() #pre_trained face detector
 
 #load and preprocess image:
 #now use just one, should be modified later:
-image_path = '/home/teakoo/Landmark-Agnostic-FIQA/img_test/image518_3.jpg'
+image_path = '/home/teakoo/Landmark-Agnostic-FIQA/img_test/173_03_4.jpg'
 image = cv2.imread(image_path)
 
 #face detection

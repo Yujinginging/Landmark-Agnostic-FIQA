@@ -46,8 +46,11 @@ def get_images_from_folder(folder_path, extensions=['jpg', 'jpeg', 'png']):
         images.extend(glob.glob(pattern))
     return images
 
-def sigmoid(x,a,b):
-    return 1 / (1 + np.exp(-(x - a) / b))
+def sigmoid(x,x0,w0):
+    return (1 + np.exp((x0 - x) / w0)) ** (-1)
+
+def truncate(f, n):
+    return math.floor(f * 10 ** n) / 10 ** n
 
 def get_dlib_output(image_path):
     image = cv2.imread(image_path)
@@ -103,9 +106,22 @@ def get_dlib_output(image_path):
         D = T / B # the head size 
 
     # compute head size quality component
-        sigmoid_value = 100 * (sigmoid(np.abs(D - 75),0,5))
-        print(f"sigmoid value:{sigmoid_value}")
-        head_size_QC = round((100 - (sigmoid_value )))
+        sigmoid_value_0 = sigmoid(np.abs(D - 75),0,5)
+        print(f"sigmoid 0:{sigmoid(75,0,5)}")
+        print(f"sigmoid 1:{sigmoid(74,0,5)}")
+
+        sigmoid_value_0_0= truncate(sigmoid_value_0,0)
+        print(f"sigmoid value:{sigmoid_value_0}")
+        print(f"sigmoid value truncated:{sigmoid_value_0_0}")
+        sigmoid_value_1 = 1 - sigmoid_value_0_0
+
+        print(f"1 minus sigmoid value:{sigmoid_value_1}")
+        sigmoid_value_2 = 100 * (sigmoid_value_1 )
+        print(f"1 minus sigmoid value multiply by 100:{sigmoid_value_2}")
+        final = round(sigmoid_value_2 )
+        print(f"final:{final}")
+
+        head_size_QC = round(100 * (1 - (sigmoid_value_0 )))
         print(f"T: {T} pixels")
         print(f"D: {D} pixels")
         print(f"B: {B} pixels")
