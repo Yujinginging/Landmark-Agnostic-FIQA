@@ -74,7 +74,7 @@ def visualize_eye_positions(image, eye_positions):
     # Visualize the eye positions on the image
     vis_image = image.copy()
     for (cx, cy) in eye_positions:
-        cv2.circle(vis_image, (cx, cy), 5, (0, 255, 0), 5)  # Green circle for eye positions
+        cv2.circle(vis_image, (cx, cy), 5, (0, 255, 0), 2)  # Green circle for eye positions
 
     # Display the result
     cv2.imshow("Eye Positions", vis_image)
@@ -95,7 +95,7 @@ def evaluate(image_path, cp):
     ])
 
     img = Image.open(image_path)
-    image = img.resize((512, 512), Image.BILINEAR)
+    image = img.resize((1350, 1350), Image.BILINEAR)
     img = to_tensor(image)
     img = torch.unsqueeze(img, 0)
     img = img.cuda()
@@ -162,10 +162,15 @@ if __name__ == "__main__":
     
     firstpart= (X_L - X_R) **2
     secondpart = (Y_L - Y_R) **2
+    #IED =  math.sqrt((left_eye_center_point[0] - right_eye_center_point[0]) ** 2 + (left_eye_center_point[1] - right_eye_center_point[1]) ** 2)
     IED=np.sqrt(firstpart + secondpart) #by default set1/cos = 1
     
     print("IED: ",IED)
     
+    #compute the IED quality component
+    IED_QC = round(100 * (sigmoid(IED,70,20)))
+    print(f"IED_QC: {IED_QC}")
+        
     
     #T chin-midpoint between eyes
     
