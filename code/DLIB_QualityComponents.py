@@ -94,7 +94,7 @@ def get_dlib_output(image_path):
 
     # Calculate the center point between left and right eyes
         center_point = ((left_eye_center_point[0] + right_eye_center_point[0]) // 2, (left_eye_center_point[1] + right_eye_center_point[1]) // 2)
-    
+        print(center_point)    
     #distance_center eye to chin
         distance_centereye_chin =  math.sqrt((center_point[0] - L16[0]) ** 2 + (center_point[1] - L16[1]) ** 2)
     # the image height and width

@@ -204,23 +204,48 @@ def get_dlib_output(image_path):
         print(f"upward_crop_QC = {upward_crop_QC}")     
 
     # compute EVS
-        V = IED * 5 / 100 # we assume V to be 5% of IED 
+        V = round(IED * 5 / 100) # we assume V to be 5% of IED 
         left_eye  = [left_lower_eyelid_1, left_lower_eyelid_2, left_upper_eyelid_1, left_upper_eyelid_2, L60, L64]
         right_eye = [right_lower_eyelid_1,right_lower_eyelid_2, right_upper_eyelid_1, right_upper_eyelid_2, L68, L72]
         left_eye_coordinates = np.array(left_eye)
         right_eye_coordinates = np.array(right_eye)
 
         # reshape the array into a 2D array
-        left_eye_coordinates = left_eye_coordinates.reshape((-1,1,2))
-        right_eye_coordinates = right_eye_coordinates.reshape((-1,1,2))
+        #left_eye_coordinates = left_eye_coordinates.reshape((-1,2))
+        #right_eye_coordinates = right_eye_coordinates.reshape((-1,2))
+
+        # find the bounding rectangle R1 and R2
+        x1,y1,w1,h1 = cv2.boundingRect(left_eye_coordinates)
+        x2,y2,w2,h2 = cv2.boundingRect(right_eye_coordinates)
+
         # draw the rectangle R1, R2 on the image 
-        cv2.polylines(image, [left_eye_coordinates], True, (0,255,0), 2)
-        cv2.polylines(image, [right_eye_coordinates], True, (0,255,0), 2)
+        cv2.rectangle(image, (x1,y1), (x1+w1,y1+h1), (0,255,0),2)
+        cv2.rectangle(image, (x2,y2), (x2+w2,y2+h2), (0,255,0),2)
+
         # maximize the R1, R2 wides and height by V
-        left_eye_coordinates[:,0] -= V # decrease the x-coordinates by V
-        left_eye_coordinates[:,1] -= V # decrease the y-coordinates by V
-        right_eye_coordinates[:,0] -= V # decrease the x-coordinates by V
-        right_eye_coordinates[:,1] -= V # decrease the y-coordinates by V        
+        # expand the x-coordinates by V   
+        left_eye_coordinates[4,0] -= V
+        left_eye_coordinates[5,0] += V
+        right_eye_coordinates[4,0] -= V
+        right_eye_coordinates[5,0] += V
+
+        # expand the y-coordinates by V 
+        left_eye_coordinates[0,1] += V
+        left_eye_coordinates[1,1] += V
+        left_eye_coordinates[2,1] -= V
+        left_eye_coordinates[3,1] -= V
+        right_eye_coordinates[0,1] += V
+        right_eye_coordinates[1,1] += V
+        right_eye_coordinates[2,1] -= V
+        right_eye_coordinates[3,1] -= V
+
+        # find the bounding rectangle R1 and R2 after maximizing with V
+        x1,y1,w1,h1 = cv2.boundingRect(left_eye_coordinates)
+        x2,y2,w2,h2 = cv2.boundingRect(right_eye_coordinates)
+
+        # draw the rectangle R1, R2 on the image 
+        cv2.rectangle(image, (x1,y1), (x1+w1,y1+h1), (0,0,255),2)
+        cv2.rectangle(image, (x2,y2), (x2+w2,y2+h2), (0,0, 255),2)    
 
         # calculate the area E1 and E2
         E1 = rectangle_area(left_eye_coordinates)
@@ -228,6 +253,15 @@ def get_dlib_output(image_path):
 
         # clculate E as E = E1 union E2
         E = E1 + E2
+        # calculate alfa
+        O = 0
+        alfa = np.abs(E - O)/np.abs(E)
+        print(f"E: {E}")
+        print(f"alfa: {alfa}")
+
+        #compute quality component eye visible
+        eye_visible_QC = round(100 * alfa)
+        print(f"eye_visible_QC: {eye_visible_QC}")
 
 
 
