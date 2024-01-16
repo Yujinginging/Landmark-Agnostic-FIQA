@@ -167,10 +167,22 @@ get_dlib_output(folder_path, excel_path)
 input_folder_path = '/home/teakoo/Landmark-Agnostic-FIQA/img_test/neutral_front'
 output_folder_path = '/home/teakoo/Landmark-Agnostic-FIQA/img_test/test_output/neutral_front_min'
 
-resize_and_save(input_folder_path, output_folder_path)
+resize_and_save(input_folder_path, output_folder_path, 1/2)
 
 # Load and preprocess image
-folder_path = '/home/teakoo/Landmark-Agnostic-FIQA/img_test/neutral_front'
+folder_path = '/home/teakoo/Landmark-Agnostic-FIQA/img_test/test_output/neutral_front_min'
 excel_path = '/home/teakoo/Landmark-Agnostic-FIQA/code/excel_output/dlib_neutral_min_front_Head_length_outputs.csv'
+
+get_dlib_output(folder_path, excel_path)
+
+# maximize resolutuion to 150% of original size
+input_folder_path = '/home/teakoo/Landmark-Agnostic-FIQA/img_test/neutral_front'
+output_folder_path = '/home/teakoo/Landmark-Agnostic-FIQA/img_test/test_output/neutral_front_max'
+
+resize_and_save(input_folder_path, output_folder_path, 6/4)
+
+# Load and preprocess image
+folder_path = '/home/teakoo/Landmark-Agnostic-FIQA/img_test/test_output/neutral_front_max'
+excel_path = '/home/teakoo/Landmark-Agnostic-FIQA/code/excel_output/dlib_neutral_max_front_Head_length_outputs.csv'
 
 get_dlib_output(folder_path, excel_path)
