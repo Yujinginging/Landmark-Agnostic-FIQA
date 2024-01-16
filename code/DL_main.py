@@ -181,19 +181,17 @@ def get_dlib_output(image_path):
      for file in files:
       if file.lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.bmp')):
         image_path = os.path.join(root, file)
-        images_path.append(image_path)
         image = cv2.imread(image_path)
         if image is not None:
           gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)   
         # Face detection
           faces = detector(image)
         # Facial landmark detection and distance calculation
-          if not faces:
-            images_path.remove(image_path)
-          else:
+          if len(faces) > 0:
              for face in faces:
 
     # Get facial landmarks
+               images_path.append(image_path)
                shape = predictor(gray, face)
                landmarks = [(shape.part(i).x, shape.part(i).y) for i in range(68)]
         
@@ -280,11 +278,28 @@ def get_dlib_output(image_path):
                list_right_crop_QC.append(rightward_crop_QC)
                list_up_crop_QC.append(upward_crop_QC)
                list_down_crop_QC.append(downward_crop_QC)
+               
         #list_QC_EV.append(QC_EV)
 
 
     #store all lists in an excel file
-    data={'image paths':images_path,'A':list_A,'B':list_B,'D':list_D,'Head size QC':list_headsize_QC,'IED':list_IED,'IED QC':list_IED_QC,
+    print(len(list_IED))
+    print(len(list_A))
+    print(len(list_B))
+    print(len(list_D))
+    print(len(list_headsize_QC))
+    print(len(list_w_eye))
+    print(len(list_eye_openness_QC))
+    print(len(images_path))
+    print(len(list_down_crop_QC))
+    print(len(list_up_crop_QC))
+    print(len(list_right_crop_QC))
+    print(len(list_left_crop_QC))
+    print(len(list_mouth_closed_QC))
+    print(len(list_w_mouth))
+    print(len(list_IED_QC))
+
+    data={'image path':images_path,'A':list_A,'B':list_B,'D':list_D,'Head size QC':list_headsize_QC,'IED':list_IED,'IED QC':list_IED_QC,
                    'eye openness':list_w_eye, 'eye openness QC':list_eye_openness_QC, 'mouth closed':list_w_mouth, 'mouth closed QC':list_mouth_closed_QC,
                     'left crop QC':list_left_crop_QC,'right crop QC':list_right_crop_QC,'up crop QC':list_up_crop_QC,'down crop QC':list_down_crop_QC,
                    }
