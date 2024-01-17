@@ -75,11 +75,10 @@ def eye_rectangles(parsing, eye_class_id, original_image):
     #print(eye_rectangles)
     if len(eye_rectangles) >= 2:
         r1, r2 = eye_rectangles[:2]
-        
+        return r1, r2
     else:
-        r1 = None
-        r2 = None
-    return r1, r2
+        r1 = eye_rectangles[0]
+        return r1
     
 
 def extract_eye_positions(parsing, eye_class_id):
@@ -153,33 +152,46 @@ def evaluate(image_path, cp):
 
     # Extract positions of left and right eyes 
     left_eye_positions,counters = extract_eye_positions(parsing, eye_class_id=4)
+    right_eye_positions,counters = extract_eye_positions(parsing, eye_class_id=5)
     if len(left_eye_positions)>=2:
         left_eye_position = left_eye_positions[0]
         right_eye_position = left_eye_positions[1]
         R1,R2=eye_rectangles(parsing, eye_class_id=4,original_image=image)
          # Calculate the center positions
-        left_eye_center = tuple(np.round(np.mean(left_eye_positions, axis=0)).astype(int))
+        #left_eye_center = tuple(np.round(np.mean(left_eye_positions, axis=0)).astype(int))
+    elif len(left_eye_positions) == 1 and len(right_eye_positions)>=1:
+        left_eye_position = left_eye_positions[0]
+        
+        right_eye_position = right_eye_positions[0]
+        center_x = (left_eye_position[0] + right_eye_position[0]) / 2
+        center_y = (left_eye_position[1] + right_eye_position[1]) / 2
+        left_eye_center = (center_x,center_y)
+        R1 = eye_rectangles(parsing, eye_class_id=4,original_image=image)
+        R2 = eye_rectangles(parsing, eye_class_id=5,original_image=image)
+    elif len(left_eye_positions) ==0 and len(right_eye_positions)>=2:
+        left_eye_position = right_eye_positions[0]
+        right_eye_position = right_eye_positions[1]
+        R1,R2=eye_rectangles(parsing, eye_class_id=5,original_image=image)
     else:
         left_eye_position = None
         right_eye_position = None
-        left_eye_center = None
-        R1 = None
-        R2 = None
+        R1=None
+        R2=None
     # a pair of positions[left,right]
     
     #chin
     chin_point = extract_chin_position(parsing,chin_class_id=1)
     #print ('chin:',chin_point)
     
-   
-    
     # Visualize eye positions on the image
     #visualize_eye_positions(np.array(image), left_eye_positions)
-    
-   
+    if left_eye_position is not None:
+        center_x = (left_eye_position[0] + right_eye_position[0]) / 2
+        center_y = (left_eye_position[1] + right_eye_position[1]) / 2
+        left_eye_center = (center_x,center_y)
+    else:
+        left_eye_center = None
     #print('Eye Center:', left_eye_center)
-    
-
    
     return R1,R2,left_eye_center,chin_point,left_eye_position,right_eye_position,counters,parsing
 
@@ -223,6 +235,7 @@ def get_heights_weights_QC(image_path,T):
     with Image.open(image_path) as img:
         height = img.size[1]
         width = img.size[0]
+        print('height:',height,', width:',width)
     B = height
     A = width
     #print('B:', B)
@@ -278,7 +291,11 @@ def mouths_closed(parsing,T):
     lower_lip_positions,counter_lip = extract_eye_positions(parsing,eye_class_id=13)
     #print('lower lip:',lower_lip_positions)
     
-    D_Lmouth= np.linalg.norm(np.array(upper_lip_positions) - np.array(lower_lip_positions))
+    length = min(len(upper_lip_positions),len(lower_lip_positions))
+    # Use only the first 2 points for upper and lower lips
+    upper_lip_positions = upper_lip_positions[:length]
+    lower_lip_positions = lower_lip_positions[:length]
+    D_Lmouth= np.linalg.norm(np.abs( np.array(upper_lip_positions) - np.array(lower_lip_positions)))
     
     w_mouth = D_Lmouth / T
     
@@ -430,8 +447,19 @@ def eye_visible(image_path,IED,R1,R2):
 
 
 
+#in case there are sub folders in your selected datsets
+def read_images_in_folder_and_subfolders(folder_path):
+    image_files = []
+    
+    # Walk through the directory and its subdirectories
+    for root, dirs, files in os.walk(folder_path):
+        for file in files:
+            if file.lower().endswith(('.jpg', '.jpeg', '.png')):
+                # Append the full path to the list of image files
+                image_files.append(os.path.join(root, file))
 
 
+    return image_files
 
 
 
@@ -440,6 +468,7 @@ def get_all_QCs(folder_path):
     list_A=[]
     list_B= []
     list_D= []
+    list_T = []
     list_headsize_QC= []
     list_IED= []
     list_IED_QC = []
@@ -453,24 +482,26 @@ def get_all_QCs(folder_path):
     list_down_crop_QC = []
     list_QC_EV = []
     
-    image_files = [f for f in os.listdir(folder_path) if f.endswith(('.jpg', '.jpeg', '.png', '.gif', '.bmp'))] #for all types of img files
+    #image_files = [f for f in os.listdir(folder_path) if f.endswith(('.jpg', '.jpeg', '.png', '.gif', '.bmp'))] #for all types of img files
 
+    image_files = read_images_in_folder_and_subfolders(folder_path=folder_path)
+    #print(image_files)
+    
     images_path = []
     for image_file in image_files:
-        image_path = os.path.join(folder_path, image_file)
-        images_path.append(image_path)
+        #image_path = os.path.join(folder_path, image_file)
+        images_path.append(image_file)
 
-        R1,R2,eye_center,chin_point,left_eye,right_eye,counters,parsing = evaluate(image_path, cp='/home/jing/FIQA_repo/face_parsing_PyTorch/res/cp/79999_iter.pth')
+        R1,R2,eye_center,chin_point,left_eye,right_eye,counters,parsing = evaluate(image_file, cp='/home/jing/FIQA_repo/face_parsing_PyTorch/res/cp/79999_iter.pth')
 
         if R1 is None or R2 is None or left_eye is None or right_eye is None:
-            images_path.remove(image_path)
+            images_path.remove(image_file)
         else:
         #get T
             T = get_T(eye_center,chin_point)
         
-            A,B,D,QC = get_heights_weights_QC(image_path,T)
+            A,B,D,QC = get_heights_weights_QC(image_file,T)
        
-        
         
         #IED
             IED,IED_QC,eyes_middle_point = get_IED(left_eye,right_eye)
@@ -489,12 +520,13 @@ def get_all_QCs(folder_path):
         
         
         #eye visible
-            QC_EV = eye_visible(image_path,IED=IED,R1=R1,R2=R2)
+            #QC_EV = eye_visible(image_path,IED=IED,R1=R1,R2=R2)
         
             #add to list
             list_A.append(A)
             list_B.append(B)
             list_D.append(D)
+            list_T.append(T)
         #head_size QCs:
             list_headsize_QC.append(QC)
             list_w_eye.append(w_eye)
@@ -507,18 +539,19 @@ def get_all_QCs(folder_path):
             list_right_crop_QC.append(rightward_crop_QC)
             list_up_crop_QC.append(upward_crop_QC)
             list_down_crop_QC.append(downward_crop_QC)
-            list_QC_EV.append(QC_EV)
+            #list_QC_EV.append(QC_EV)
     
     #store all lists in an excel file
-    data={'image paths':images_path,'A':list_A,'B':list_B,'D':list_D,'Head size QC':list_headsize_QC,'IED':list_IED,'IED QC':list_IED_QC,
+    data={'image paths':images_path,'A':list_A,'B':list_B,'D':list_D,'T': list_T, 'Head size QC':list_headsize_QC,'IED':list_IED,'IED QC':list_IED_QC,
           'eye openness':list_w_eye, 'eye openness QC':list_eye_openness_QC, 'mouth closed':list_w_mouth, 'mouth closed QC':list_mouth_closed_QC,
           'left crop QC':list_left_crop_QC,'right crop QC':list_right_crop_QC,'up crop QC':list_up_crop_QC,'down crop QC':list_down_crop_QC,
-          'eye visible QC': list_QC_EV}
+          }#'eye visible QC': list_QC_EV}
     df = pd.DataFrame(data)
-    excel_file_path = '/home/jing/FIQA_repo/code/excel outputs/face_parsing_outputs.csv'
-    
+    excel_file_path = '/home/jing/FIQA_repo/code/excel outputs/face_parsing_outputs_lfw-deepfunneled.csv'
+    print(image_file)
     # Save the DataFrame to an Excel file
     df.to_csv(excel_file_path)
     
     
-get_all_QCs('/home/jing/FIQA_repo/datasets/neutral_front/neutral_front')
+#get_all_QCs('/home/jing/FIQA_repo/datasets/neutral_front/neutral_front')
+get_all_QCs('/home/jing/FIQA_repo/datasets/archive/lfw-deepfunneled/lfw-deepfunneled')
