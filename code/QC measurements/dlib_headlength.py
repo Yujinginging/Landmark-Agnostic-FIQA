@@ -121,10 +121,10 @@ def get_dlib_output(image_path, excel_path):
                landmarks = [(shape.part(i).x, shape.part(i).y) for i in range(68)]
         
         # get landmarks to compute components
-               L60 = landmarks[36] # left eye outer corner
-               L64 = landmarks[39] # left eye inner corner
-               L68 = landmarks[42] # right eye inner corner
-               L72 = landmarks[45] # right eye outer corner 
+               L60 = landmarks[45] # right eye outer corner
+               L64 = landmarks[42] # right eye inner corner
+               L68 = landmarks[39] # left eye inner corner
+               L72 = landmarks[36] # left eye outer corner 
                L16 = landmarks[8] # chin 
 
     # calculate left eye center
