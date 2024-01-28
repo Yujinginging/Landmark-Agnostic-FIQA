@@ -7,4 +7,4 @@ This project is from the master thesis "Landmark-agnostic Face Image Quality Ass
 
 To run the face-parsing scripts, please install Face-parsing.PyTorch (https://github.com/zllrunning/face-parsing.PyTorch.git).
 
-
+**Used Datasets:**
