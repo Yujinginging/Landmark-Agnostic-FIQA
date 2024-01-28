@@ -40,13 +40,13 @@ predictor = dlib.shape_predictor(predictor_path)
 
 
 #load from the folder
-def get_images_from_folder(folder_path, extensions=['jpg', 'jpeg', 'png']):
+#def get_images_from_folder(folder_path, extensions=['jpg', 'jpeg', 'png']):
    
-    images = []
-    for extension in extensions:
-        pattern = os.path.join(folder_path, f'*.{extension}')
-        images.extend(glob.glob(pattern))
-    return images
+#    images = []
+#    for extension in extensions:
+#        pattern = os.path.join(folder_path, f'*.{extension}')
+#        images.extend(glob.glob(pattern))
+#    return images
 
 def sigmoid(x,x0,w0):
     return (1 + np.exp((x0 - x) / w0)) ** (-1)
@@ -70,15 +70,6 @@ def get_eye_center(left_eye_center_point,right_eye_center_point):
                      (left_eye_center_point[1] + right_eye_center_point[1]) // 2)
     return center_point
 
-# #get images height and weight:
-# def get_height_width(image_path):
-    
-#     with cv2.imread(image_path) as img:
-#         height = img.shape[0] # the image height
-#         width = img.size[1] # the image width
-#     B = height
-#     A = width
-#     return A, B 
 
 # Distance between the Chin and midpoint between the eyes
 def get_T(eye_center, chin_point):
@@ -145,18 +136,22 @@ def get_w_mouth_QC(T, L89, L90, L91, L93, L94, L95):
 
 # the face crop of image quality component and the mapping:
 def get_face_crop_QC(A, B, IED, right_eye_center_point, left_eye_center_point, center_point):
-        # compute the leftward crop QC of the face in image
+        # compute the leftward crop and QC of the face in image
+        leftward_crop = right_eye_center_point[0]/IED
         leftward_crop_QC = round(100 * (sigmoid(right_eye_center_point[0]/IED, 0.9, 0.1)))
 
-    # compute the rightward crop QC of the face in image
+    # compute the rightward crop  and QC of the face in image
+        rightward_crop = (A - left_eye_center_point[0])/IED
         rightward_crop_QC = round(100 * (sigmoid((A - left_eye_center_point[0])/IED, 0.9, 0.1)))
 
-    # compute the downward crop QC of the face in image
+    # compute the downward crop and QC of the face in image
+        downward_crop = center_point[1]/IED
         downward_crop_QC = round(100 * (sigmoid(center_point[1]/IED, 1.4, 0.1))) 
 
-    # compute the upward crop QC of the face in image
+    # compute the upward crop and QC of the face in image
+        upward_crop = (B - center_point[1])/IED
         upward_crop_QC = round(100 * (sigmoid((B - center_point[1])/IED, 1.8, 0.1)))
-        return leftward_crop_QC, rightward_crop_QC, downward_crop_QC,upward_crop_QC
+        return leftward_crop, leftward_crop_QC, rightward_crop, rightward_crop_QC, downward_crop, downward_crop_QC, upward_crop, upward_crop_QC
 
 def get_dlib_output(image_path):
     list_A=[]
@@ -169,9 +164,13 @@ def get_dlib_output(image_path):
     list_eye_openness_QC = []
     list_w_mouth= []
     list_mouth_closed_QC = []
+    list_left_crop = []
     list_left_crop_QC= []
+    list_right_crop = []
     list_right_crop_QC= []
+    list_up_crop = []
     list_up_crop_QC= []
+    list_down_crop = []
     list_down_crop_QC = []
 #    list_QC_EV = []
     
@@ -196,19 +195,19 @@ def get_dlib_output(image_path):
                landmarks = [(shape.part(i).x, shape.part(i).y) for i in range(68)]
         
         # get landmarks to compute components
-               L60 = landmarks[36] # left eye outer corner
-               L64 = landmarks[39] # left eye inner corner
-               L68 = landmarks[42] # right eye inner corner
-               L72 = landmarks[45] # right eye outer corner 
+               L60 = landmarks[45] # right eye outer corner
+               L64 = landmarks[42] # right eye inner corner
+               L68 = landmarks[39] # left eye inner corner
+               L72 = landmarks[36] # left eye outer corner 
                L16 = landmarks[8] # chin 
-               left_upper_eyelid_1 = landmarks[37]
-               left_upper_eyelid_2 = landmarks[38]
-               left_lower_eyelid_1 = landmarks[41]
-               left_lower_eyelid_2 = landmarks[40]
-               right_upper_eyelid_1 = landmarks[43]
-               right_upper_eyelid_2 = landmarks[44]
-               right_lower_eyelid_1 = landmarks[47]
-               right_lower_eyelid_2 = landmarks[46]
+               right_upper_eyelid_1 = landmarks[37]
+               right_upper_eyelid_2 = landmarks[38]
+               right_lower_eyelid_1 = landmarks[41]
+               right_lower_eyelid_2 = landmarks[40]
+               left_upper_eyelid_1 = landmarks[43]
+               left_upper_eyelid_2 = landmarks[44]
+               left_lower_eyelid_1 = landmarks[47]
+               left_lower_eyelid_2 = landmarks[46]
                L89 = landmarks[61]
                L90 = landmarks[62]
                L91 = landmarks[63]
@@ -257,7 +256,7 @@ def get_dlib_output(image_path):
 
 
     # compute the leftward crop QC of the face in image
-               leftward_crop_QC, rightward_crop_QC, downward_crop_QC, upward_crop_QC  = get_face_crop_QC(A, B, IED, right_eye_center_point, left_eye_center_point, center_point)
+               leftward_crop, leftward_crop_QC, rightward_crop, rightward_crop_QC, downward_crop, downward_crop_QC, upward_crop, upward_crop_QC  = get_face_crop_QC(A, B, IED, right_eye_center_point, left_eye_center_point, center_point)
 #        print(f"leftward_crop_QC = {leftward_crop_QC}")
 #        print(f"rightward_crop_QC = {rightward_crop_QC}") 
 #        print(f"dwonward_crop_QC = {downward_crop_QC}")  
@@ -274,9 +273,13 @@ def get_dlib_output(image_path):
                list_IED_QC.append(IED_QC)
                list_w_mouth.append(W_mouth)
                list_mouth_closed_QC.append(mouth_closed_QC)
+               list_left_crop.append(leftward_crop)
                list_left_crop_QC.append(leftward_crop_QC)
+               list_right_crop.append(rightward_crop)
                list_right_crop_QC.append(rightward_crop_QC)
+               list_up_crop.append(upward_crop)
                list_up_crop_QC.append(upward_crop_QC)
+               list_down_crop.append(downward_crop)
                list_down_crop_QC.append(downward_crop_QC)
                
         #list_QC_EV.append(QC_EV)
@@ -301,7 +304,8 @@ def get_dlib_output(image_path):
 
     data={'image path':images_path,'A':list_A,'B':list_B,'D':list_D,'Head size QC':list_headsize_QC,'IED':list_IED,'IED QC':list_IED_QC,
                    'eye openness':list_w_eye, 'eye openness QC':list_eye_openness_QC, 'mouth closed':list_w_mouth, 'mouth closed QC':list_mouth_closed_QC,
-                    'left crop QC':list_left_crop_QC,'right crop QC':list_right_crop_QC,'up crop QC':list_up_crop_QC,'down crop QC':list_down_crop_QC,
+                    'left crop':list_left_crop,'left crop QC':list_left_crop_QC,'right crop':list_right_crop,'right crop QC':list_right_crop_QC,
+                    'up crop':list_up_crop,'up crop QC':list_up_crop_QC,'down crop':list_down_crop,'down crop QC':list_down_crop_QC,
                    }
     df = pd.DataFrame(data)
     excel_file_path = '/home/teakoo/Landmark-Agnostic-FIQA/code/excel_output/dlib_lfw-deepfunneled_outputs.csv'

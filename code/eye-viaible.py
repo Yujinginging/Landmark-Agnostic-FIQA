@@ -15,7 +15,6 @@ import torch.nn as nn
 import math
 
 
-
 def download_and_extract_shape_predictor():
     shape_predictor_url = "http://dlib.net/files/shape_predictor_68_face_landmarks.dat.bz2"
     shape_predictor_archive_path = "shape_predictor_68_face_landmarks.dat.bz2"
@@ -44,7 +43,24 @@ predictor_path = download_and_extract_shape_predictor()
 # Load the shape predictor
 predictor = dlib.shape_predictor(predictor_path)
 
+def rectangle_area(vertices):
+    area = 0.5 * abs(np.dot(vertices[:,0], np.roll(vertices[:,1],1)) - np.dot(vertices[:,1], np.roll(vertices[:,0],1)) )
+    return area
 
+def read_images_in_folder(folder_path):
+    image_files = [f for f in os.listdir(folder_path) if f.endswith(('.jpg', '.jpeg', '.png', '.gif', '.bmp'))]
+
+    images = []
+    for image_file in image_files:
+        image_path = os.path.join(folder_path, image_file)
+        try:
+            with Image.open(image_path) as img:
+                images.append(img)
+                # Do something with the image if needed
+        except Exception as e:
+            print(f"Error reading {image_path}: {e}")
+
+    return images
 
 # methods to get the raw value of the QC and their mapped values
 
@@ -63,20 +79,6 @@ def get_eye_center(left_eye_center_point,right_eye_center_point):
     center_point = ((left_eye_center_point[0] + right_eye_center_point[0]) // 2,
                      (left_eye_center_point[1] + right_eye_center_point[1]) // 2)
     return center_point
-
-# #get images height and weight:
-# def get_height_width(image_path):
-    
-#     with cv2.imread(image_path) as img:
-#         height = img.shape[0] # the image height
-#         width = img.size[1] # the image width
-#     B = height
-#     A = width
-#     return A, B 
-
-def rectangle_area(vertices):
-    area = 0.5 * abs(np.dot(vertices[:,0], np.roll(vertices[:,1],1)) - np.dot(vertices[:,1], np.roll(vertices[:,0],1)) )
-    return area
 
 
 # Distance between the Chin and midpoint between the eyes
@@ -115,7 +117,8 @@ def face_occlusion_segmentation(image_path,model):
 
     # Step 9: Pad the segmentation mask by 96 pixels from all sides
  #   padded_mask = nn.ZeroPad2d(96)(resized_mask.unsqueeze(0)).squeeze()
-    print(segmentation_mask)
+    print(segmentation_mask.size())
+    M =int
 
     if segmentation_mask is None:
         return None
@@ -251,33 +254,34 @@ def comput_evz(left_eye_center_point, right_eye_center_point,left_lower_eyelid_1
          alpha = EO / E
          alpha_QC = round(100 * alpha)
          return alpha,  alpha_QC
+        
 
-
-def get_dlib_output(image_path):
+def get_dlib_output(image_path, excel_path):
     list_A=[]
     list_B= []
     list_alpha= []
     list_alpha_QC= []
+    list_head_length= []
     
-   
+    image_files = [f for f in os.listdir(folder_path) if f.endswith(('.jpg', '.jpeg', '.png', '.gif', '.bmp'))] #for all types of img files
+
+
     images_path = []
-    for root, dirs, files in os.walk(folder_path):
-     for file in files:
-      if file.lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.bmp')):
-        image_path = os.path.join(root, file)
-        image = cv2.imread(image_path)
-        if image is not None:
-          img = cv2.imread(image_path)   # change here
-          image = cv2.resize(img,(224, 224))
-          gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)   
+    for image_file in image_files:
+        image_path = os.path.join(folder_path, image_file)
+        images_path.append(image_path)
+        img = cv2.imread(image_path)
+        image = cv2.resize(img,(224, 224))
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)   
         # Face detection
-          faces = detector(image)
+        faces = detector(image)
         # Facial landmark detection and distance calculation
-          if len(faces) > 0:
+        if not faces:
+            images_path.remove(image_path)
+        else:
              for face in faces:
 
     # Get facial landmarks
-               images_path.append(image_path)
                shape = predictor(gray, face)
                landmarks = [(shape.part(i).x, shape.part(i).y) for i in range(68)]
         
@@ -294,8 +298,7 @@ def get_dlib_output(image_path):
                right_upper_eyelid_1 = landmarks[43]
                right_upper_eyelid_2 = landmarks[44]
                right_lower_eyelid_1 = landmarks[47]
-               right_lower_eyelid_2 = landmarks[46]
-
+               right_lower_eyelid_2 = landmarks[46]               
 
     # calculate left eye center
                left_eye_center_point = get_left_eye_center(L60 , L64)
@@ -304,14 +307,15 @@ def get_dlib_output(image_path):
                right_eye_center_point = get_right_eye_center(L68 , L72)
 
     # Calculate the center point between left and right eyes
-               center_point = get_eye_center(left_eye_center_point,right_eye_center_point)
-#        print(center_point)    
-    #distance_center eye to chin
-               distance_centereye_chin =  math.sqrt((center_point[0] - L16[0]) ** 2 + (center_point[1] - L16[1]) ** 2)
+               center_point = get_eye_center(left_eye_center_point,right_eye_center_point)   
 
     # the image height and width
                B = image.shape[0] # the image height
                A = image.shape[1] # the image width
+
+    # comput the Head size quality component
+               T = get_T(center_point, L16) # the distance_midpoint between eyes to chin
+               head_length = 2 * T # as the painting method proposed
 
                # comput eye visible
                alpha , alpha_QC = comput_evz(left_eye_center_point, right_eye_center_point,left_lower_eyelid_1,left_lower_eyelid_2,left_upper_eyelid_1,left_upper_eyelid_2,
@@ -320,18 +324,20 @@ def get_dlib_output(image_path):
     #add to list
                list_A.append(A)
                list_B.append(B)
+               list_head_length.append(head_length)
                list_alpha.append(alpha)
                list_alpha_QC.append(alpha_QC)
 
     #store all lists in an excel file
-    data={'image paths':images_path,'A':list_A,'B':list_B,'alpha':list_alpha,'alpha QC':list_alpha_QC}
+    data={'image paths':images_path,'A':list_A,'B':list_B,'Head Length':list_head_length,'alpha':list_alpha,'alpha QC':list_alpha_QC}
     df = pd.DataFrame(data)
-    excel_file_path = '/home/teakoo/Landmark-Agnostic-FIQA/code/excel_output/dlib_lfw-deepfunneled_outputs_eye_visible_test.csv'
+    excel_file_path = excel_path
     
     # Save the DataFrame to an Excel file
     df.to_csv(excel_file_path)
 
 # Load and preprocess image
-folder_path = '/home/teakoo/Landmark-Agnostic-FIQA/img_test/dlib_test/test eye vsible'
+folder_path = '/home/teakoo/Landmark-Agnostic-FIQA/img_test/neutral_front'
+excel_path = '/home/teakoo/Landmark-Agnostic-FIQA/code/excel_output/dlib_neutral_front_Head_length_outputs_1.csv'
 
-get_dlib_output(folder_path)
+get_dlib_output(folder_path, excel_path)

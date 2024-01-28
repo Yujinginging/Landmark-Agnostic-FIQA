@@ -36,7 +36,7 @@ predictor_path = download_and_extract_shape_predictor()
 predictor = dlib.shape_predictor(predictor_path)
 
 # Load an image
-image_path = "/home/teakoo/Landmark-Agnostic-FIQA/img_test/518.jpg"
+image_path = "/home/teakoo/Landmark-Agnostic-FIQA/img_test/dlib_test/MicrosoftTeams-image.png"
 image = cv2.imread(image_path)
 
 # Convert the image to grayscale
@@ -57,7 +57,7 @@ for face in faces:
         cv2.circle(image, (x, y), 2, (0, 255, 0), -1)
         cv2.putText(image, str(i), (x + 5, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 255, 255), 1)
         #save the image with rectangles: for test and view results later
-    cv2.imwrite('/home/teakoo/Landmark-Agnostic-FIQA/img_test/test_output/518_3_withlandmark.jpg',image)
+    cv2.imwrite('/home/teakoo/Landmark-Agnostic-FIQA/img_test/test_output/MicrosoftTeams-image_withlandmark.jpg',image)
     
 # Display the result
 cv2.imshow("Facial Landmarks with Numbers", image)
