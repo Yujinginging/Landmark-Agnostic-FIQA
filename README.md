@@ -16,7 +16,7 @@ Three requirements files are provided in the main branch, since different estima
 2. LFW dataset: (https://www.kaggle.com/datasets/jessicali9530/lfw-dataset?resource=download)
 
 All of the employment and implementation of the project are included in the "code" folder:
-1. To get the quality components measurements with multiple images (dataset), please go to the "QC measurements" folder, "DL_main" is the script for measures using Dlib, and "FP__QC_measurements.py" is for measures using face-parsing. Dlib has a separate file for the head length measurement: "dlib_measurements.py". Please do not forget to change the input folder and output file path in the script to produce the results.
+1. To get the quality components measurements with multiple images (dataset), please go to the "QC measurements" folder, "DL_main" is the script for measures using Dlib, and "FP__QC_measurements.py" is for measures using face-parsing. Dlib has a separate file for the head length measurement: "dlib_measurements.py", and for face-parsing, it is "FP__QC_measurements_resolutions.py". Please do not forget to change the input folder and output file path in the script to produce the results.
 2. Dlib and face-parsing have two separate folders, each consisting of the script used to run and test on a single image.
 3. The "landmark-dependent estimators selection" folder is for scripts running for five evaluated estimators.
 
