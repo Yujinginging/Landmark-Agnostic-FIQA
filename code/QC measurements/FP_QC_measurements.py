@@ -347,37 +347,37 @@ def face_crops(right_eye,left_eye,eyes_middle_point,A,B,IED):
     #print(f"upward_crop_QC = {upward_crop_QC}")     
     return leftward,rightward,downward,upward,leftward_crop_QC,rightward_crop_QC,downward_crop_QC,upward_crop_QC
 
-def face_occlusion_segmentation(image_path,model):
-    # Step 1: Crop the image from all sides by 96 pixels
-    original_image = Image.open(image_path)
-    cropped_image = original_image.crop((96, 96, original_image.width - 96, original_image.height - 96))
+# def face_occlusion_segmentation(image_path,model):
+#     # Step 1: Crop the image from all sides by 96 pixels
+#     original_image = Image.open(image_path)
+#     cropped_image = original_image.crop((96, 96, original_image.width - 96, original_image.height - 96))
 
-    # Step 2: Scale the image to 224x224 pixels
-    resized_image = cropped_image.resize((224, 224), Image.BILINEAR)
+#     # Step 2: Scale the image to 224x224 pixels
+#     resized_image = cropped_image.resize((224, 224), Image.BILINEAR)
 
-    # Step 3: Encode the image in a 4-dimensional tensor
-    tensor_image = transforms.ToTensor()(resized_image).unsqueeze(0)
+#     # Step 3: Encode the image in a 4-dimensional tensor
+#     tensor_image = transforms.ToTensor()(resized_image).unsqueeze(0)
 
-    # Step 4: Divide the tensor by 255
-    tensor_image /= 255.0
+#     # Step 4: Divide the tensor by 255
+#     tensor_image /= 255.0
 
-    # Step 5: Feed the tensor through the face parsing CNN
-    with torch.no_grad():
-        output_tensor = model(tensor_image)
+#     # Step 5: Feed the tensor through the face parsing CNN
+#     with torch.no_grad():
+#         output_tensor = model(tensor_image)
 
-    # Step 6: Remove the first dimension of the output tensor
-    segmentation_mask = torch.argmax(output_tensor, dim=1).squeeze()
+#     # Step 6: Remove the first dimension of the output tensor
+#     segmentation_mask = torch.argmax(output_tensor, dim=1).squeeze()
 
-    # Step 7: Set all positive values of the segmentation mask to 1, and all other values to 0
-    segmentation_mask = (segmentation_mask > 0).type(torch.float32)
+#     # Step 7: Set all positive values of the segmentation mask to 1, and all other values to 0
+#     segmentation_mask = (segmentation_mask > 0).type(torch.float32)
 
-    # Step 8: Resize the segmentation mask to 424x424 pixels
-    resized_mask = transforms.Resize((424, 424), Image.NEAREST)(segmentation_mask.unsqueeze(0)).squeeze()
+#     # Step 8: Resize the segmentation mask to 424x424 pixels
+#     resized_mask = transforms.Resize((424, 424), Image.NEAREST)(segmentation_mask.unsqueeze(0)).squeeze()
 
-    # Step 9: Pad the segmentation mask by 96 pixels from all sides
-    padded_mask = nn.ZeroPad2d(96)(resized_mask.unsqueeze(0)).squeeze()
+#     # Step 9: Pad the segmentation mask by 96 pixels from all sides
+#     padded_mask = nn.ZeroPad2d(96)(resized_mask.unsqueeze(0)).squeeze()
 
-    return padded_mask
+#     return padded_mask
 
 def extract_eye_zone(segmentation_mask, eye_class_id):
     if segmentation_mask is None:
@@ -415,56 +415,56 @@ def expand_rectangles(r1, r2, V):
 
         return expanded_r1, expanded_r2
 
-def eye_visible(image_path,IED,R1,R2):
-     #eye visible
-    #model
+# def eye_visible(image_path,IED,R1,R2):
+#      #eye visible
+#     #model
     
-    ENCODER = 'resnet18'
-    ENCODER_WEIGHTS = 'imagenet'
-    CLASSES = 1
-    ATTENTION = None
-    ACTIVATION = None
-    DEVICE = 'cuda:1'
-    model = smp.Unet(encoder_name=ENCODER,
-                 encoder_weights=ENCODER_WEIGHTS,
-                 classes=CLASSES,
-                 activation=ACTIVATION)
-    weights = torch.load('/home/jing/FIQA_repo/FaceExtraction/epoch_16_best.ckpt')
-    new_weights = OrderedDict()
-    for key in weights.keys():
-        new_key = '.'.join(key.split('.')[1:])
-        new_weights[new_key] = weights[key]
+#     ENCODER = 'resnet18'
+#     ENCODER_WEIGHTS = 'imagenet'
+#     CLASSES = 1
+#     ATTENTION = None
+#     ACTIVATION = None
+#     DEVICE = 'cuda:1'
+#     model = smp.Unet(encoder_name=ENCODER,
+#                  encoder_weights=ENCODER_WEIGHTS,
+#                  classes=CLASSES,
+#                  activation=ACTIVATION)
+#     weights = torch.load('/home/jing/FIQA_repo/FaceExtraction/epoch_16_best.ckpt')
+#     new_weights = OrderedDict()
+#     for key in weights.keys():
+#         new_key = '.'.join(key.split('.')[1:])
+#         new_weights[new_key] = weights[key]
 
-    model.load_state_dict(new_weights)
-    #model.to(DEVICE)
-    model.eval()
+#     model.load_state_dict(new_weights)
+#     #model.to(DEVICE)
+#     model.eval()
 
-    #segmentation mask M
-    M = face_occlusion_segmentation(image_path,model=model)
-    O = extract_eye_zone(M,eye_class_id=4)
-    #V - offset distance
-    V = IED/20
+#     #segmentation mask M
+#     M = face_occlusion_segmentation(image_path,model=model)
+#     O = extract_eye_zone(M,eye_class_id=4)
+#     #V - offset distance
+#     V = IED/20
     
     
-    expanded_r1, expanded_r2 = expand_rectangles(R1, R2, V)
-    if expanded_r2 is None:
-        return None
-    else:
-        E = expanded_r1 + expanded_r2
-    E = torch.tensor(E)
-    #print('E:',E)
-    #print('O:',O)
-    if O is None:
-        alpha = 1
-    else:
-        alpha = torch.abs(E-O)/torch.abs(E)
-    #alpha_np = alpha.numpy()
-    #print('alpha:',alpha)
+#     expanded_r1, expanded_r2 = expand_rectangles(R1, R2, V)
+#     if expanded_r2 is None:
+#         return None
+#     else:
+#         E = expanded_r1 + expanded_r2
+#     E = torch.tensor(E)
+#     #print('E:',E)
+#     #print('O:',O)
+#     if O is None:
+#         alpha = 1
+#     else:
+#         alpha = torch.abs(E-O)/torch.abs(E)
+#     #alpha_np = alpha.numpy()
+#     #print('alpha:',alpha)
     
-    #eye visible QC
-    QC_EV = round(100*alpha)
-    #print('Eye visible QC: ',QC_EV)
-    return QC_EV
+#     #eye visible QC
+#     QC_EV = round(100*alpha)
+#     #print('Eye visible QC: ',QC_EV)
+#     return QC_EV
 
 
 
@@ -501,7 +501,7 @@ def get_all_QCs(folder_path):
     list_right_crop_QC= []
     list_up_crop_QC= []
     list_down_crop_QC = []
-    list_QC_EV = []
+    # list_QC_EV = []
     list_up_crop_value =[]
     list_down_crop_value = []
     list_left_crop_value= []
