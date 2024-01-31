@@ -7,17 +7,42 @@ This project is from the master thesis "Landmark-agnostic Face Image Quality Ass
 
 To run the face-parsing scripts, please install: 
 1. Face-parsing.PyTorch (https://github.com/zllrunning/face-parsing.PyTorch.git)
-2. The pre-trained model from face-parsing. Save them in your project for further usage.
+2. The pre-trained model from face-parsing. You can save them in your project for further use.
 
-Three requirements files are provided in the main branch, since different estimators used in this project may require different working environments. As a suggestion, please build various virtual environments to run the estimators (for example, if you want to test the dlib, please build the virtual environment based on the given requirement file named "requirements MTCNN Dlib MediaPipe.txt"). 
+Three requirements files are provided in the main branch, since different estimators used in this project may require different working environments. As a suggestion, please build various virtual environments to run the estimators (for example, if you want to test the dlib, please build the virtual environment based on the given requirement file named "requirements MTCNN Dlib MediaPipe.txt". To create the virtual environment on the given requirements file, you can follow: https://stackoverflow.com/questions/41427500/creating-a-virtualenv-with-preinstalled-packages-as-in-requirements-txt). 
 
 **Used Datasets for quality components measurements:**
 1. FRLL dataset: (https://figshare.com/articles/dataset/Face_Research_Lab_London_Set/5047666)
 2. LFW dataset: (https://www.kaggle.com/datasets/jessicali9530/lfw-dataset?resource=download)
 
-All of the employment and implementation of the project are included in the "code" folder:
-1. To get the quality components measurements with multiple images (dataset), please go to the "QC measurements" folder, "DL_main" is the script for measures using Dlib, and "FP__QC_measurements.py" is for measures using face-parsing. Dlib has a separate file for the head length measurement: "dlib_measurements.py", and for face-parsing, it is "FP__QC_measurements_resolutions.py". Please do not forget to change the input folder and output file path in the script to produce the results.
-2. Dlib and face-parsing have two separate folders, each consisting of the script used to run and test on a single image.
-3. The "landmark-dependent estimators selection" folder is for scripts running for five evaluated estimators.
+## Comparative Analysis
+All of the employment and implementation of the comparative analysis are included in the "code" folder:
 
+### Face-parsing:
+To get the results of the quality component measurements on head size, inter-eye distance, eye open, mouth closed, and crop of the face: "QC measurement" > "FP__QC_measurements.py".
+Please do not forget to change the path of the pre-trained model (cp='' in the evaluate() method).
+
+### Dlib
+To get the results of the quality component measurements on head size, inter-eye distance, eye open, mouth closed, and crop of the face: "QC measurement" > "DL_main.py".
+
+Please change the input folder path of the dataset (e.g., LFW dataset) and the Excel file path that will save the results for both estimators.
+
+## Head length measurement with different resolutions:
+All of the employment and implementation of this topic are included in the "code" folder:
+### Face-parsing: 
+Please find it here: "QC measurement" >"FP__QC_measurements_resolutions.py".
+### Dlib:
+Please find it here: "QC measurement" > "dlib_headlength.py".
+
+Please change the folder path of the dataset and CSV file path for results saving.
+
+To test the quality component measurement on a single image and for visualization of the results, please use the Python files in the folder:
+1. For Dlib: "code" > "dlib" > "DLIB_QualityComponents.py"; to see all landmarks:  "code" > "dlib" > "dlib.landmarks.py".
+2. For Face-parsing: "code" > "dlib" > "QC_single image.py".
+
+## Landmark-dependent estimators
+This is for the selection of a landmark-dependent estimator, the files for the tested five estimators can be found in the folder: "code" > "landmark-dependent estimators selection".
+
+
+## Comparison results
 In "excel_outputs" folder, contains Excel worksheets with results from both Dlib and face-parsing estimators, and the comparison results and diagrams.
