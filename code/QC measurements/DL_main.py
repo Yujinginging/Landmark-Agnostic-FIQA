@@ -51,6 +51,28 @@ predictor = dlib.shape_predictor(predictor_path)
 def sigmoid(x,x0,w0):
     return (1 + np.exp((x0 - x) / w0)) ** (-1)
 
+#load from the folder
+def get_images_from_folder(folder_path, extensions=['jpg', 'jpeg', 'png']):
+   
+    images = []
+    for extension in extensions:
+        pattern = os.path.join(folder_path, f'*.{extension}')
+        images.extend(glob.glob(pattern))
+    return images
+
+#in case there are sub folders in your selected datsets
+def read_images_in_folder_and_subfolders(folder_path):
+    image_files = []
+    
+    # Walk through the directory and its subdirectories
+    for root, dirs, files in os.walk(folder_path):
+        for file in files:
+            if file.lower().endswith(('.jpg', '.jpeg', '.png')):
+                # Append the full path to the list of image files
+                image_files.append(os.path.join(root, file))
+
+
+    return image_files
 
 # methods to get the raw value of the QC and their mapped values
 
@@ -174,12 +196,14 @@ def get_dlib_output(image_path):
     list_down_crop_QC = []
 #    list_QC_EV = []
     
+    image_files = read_images_in_folder_and_subfolders(folder_path=folder_path)
    
     images_path = []
-    for root, dirs, files in os.walk(folder_path):
-     for file in files:
-      if file.lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.bmp')):
-        image_path = os.path.join(root, file)
+    for image_path in image_files :
+    #for root, dirs, files in os.walk(folder_path):
+     #for file in files:
+      #if file.lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.bmp')):
+        #image_path = os.path.join(root, file)
         image = cv2.imread(image_path)
         if image is not None:
           gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)   
